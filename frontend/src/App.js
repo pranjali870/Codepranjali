@@ -4,16 +4,31 @@ import Login from "./pages/Login";
 import Tasks from "./pages/Tasks";
 
 const PrivateRoute = ({ children }) => {
-  return localStorage.getItem("token") ? children : <Navigate to="/login" />;
+  return localStorage.getItem("token")
+    ? children
+    : <Navigate to="/login" />;
 };
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Registers />} />
+        {/* Default page */}
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        {/* Pages */}
         <Route path="/login" element={<Login />} />
-        <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>} />
+        <Route path="/register" element={<Registers />} />
+
+        {/* Protected page */}
+        <Route
+          path="/tasks"
+          element={
+            <PrivateRoute>
+              <Tasks />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
