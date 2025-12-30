@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Registers from "../src/pages/Login";
-import Login from "../src/pages/Registers";
-import Tasks from "../src/pages/Tasks";
+import Registers from "./pages/Registers";
+import Login from "./pages/Login";
+import Tasks from "./pages/Tasks";
 
 const PrivateRoute = ({ children }) => {
   return localStorage.getItem("token") ? children : <Navigate to="/login" />;
