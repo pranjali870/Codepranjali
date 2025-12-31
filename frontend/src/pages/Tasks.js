@@ -6,10 +6,9 @@ const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [editTitle, setEditTitle] = useState("");
-
   const token = localStorage.getItem("token");
 
-  // Load tasks from backend
+  // Fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -32,19 +31,7 @@ const Tasks = () => {
       });
       setTasks([...tasks, res.data]);
     } catch (err) {
-      console.error("Error adding task:", err);
-    }
-  };
-
-  // Delete task
-  const handleDelete = async (taskId) => {
-    try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setTasks(tasks.filter((t) => t._id !== taskId));
-    } catch (err) {
-      console.error("Error deleting task:", err);
+      console.error("Failed to add task:", err);
     }
   };
 
@@ -60,13 +47,25 @@ const Tasks = () => {
       const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/tasks/${task._id}`, { title: editTitle }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const newTasks = [...tasks];
-      newTasks[index] = res.data;
-      setTasks(newTasks);
+      const updatedTasks = [...tasks];
+      updatedTasks[index] = res.data;
+      setTasks(updatedTasks);
       setEditIndex(null);
       setEditTitle("");
     } catch (err) {
-      console.error("Error updating task:", err);
+      console.error("Failed to update task:", err);
+    }
+  };
+
+  // Delete task
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/tasks/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTasks(tasks.filter(t => t._id !== id));
+    } catch (err) {
+      console.error("Failed to delete task:", err);
     }
   };
 
@@ -75,15 +74,13 @@ const Tasks = () => {
       <AddTasks onAdd={handleAddTask} />
       <div style={{ maxWidth: "600px", margin: "20px auto" }}>
         <h3>Task List</h3>
-        {tasks.length === 0 ? (
-          <p>No tasks added</p>
-        ) : (
+        {tasks.length === 0 ? <p>No tasks added</p> : (
           <ul>
             {tasks.map((t, i) => (
               <li key={t._id} style={{ marginBottom: "10px" }}>
                 {editIndex === i ? (
                   <>
-                    <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                    <input value={editTitle} onChange={e => setEditTitle(e.target.value)} />
                     <button onClick={() => handleSave(i)}>Save</button>
                   </>
                 ) : (

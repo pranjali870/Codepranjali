@@ -20,10 +20,21 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const user = new User({ name, email, password });
+    // Hash password before saving
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    // Return token immediately after registration
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || "secretkey",
+      { expiresIn: "1d" }
+    );
+
+    res.status(201).json({ user: { name: user.name, email: user.email, _id: user._id }, token });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -50,7 +61,7 @@ const login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.status(200).json({ user, token });
+    res.status(200).json({ user: { name: user.name, email: user.email, _id: user._id }, token });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

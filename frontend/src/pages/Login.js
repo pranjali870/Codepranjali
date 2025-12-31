@@ -5,15 +5,17 @@ import axios from "axios";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, { email, password });
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("username", res.data.user.name);
+
       navigate("/tasks");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
@@ -29,10 +31,9 @@ function Login() {
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: "12px", marginBottom: "20px", borderRadius: "5px", border: "1px solid #ccc" }} />
         <button type="submit" style={{ padding: "12px", borderRadius: "5px", border: "none", backgroundColor: "#2563eb", color: "#fff", fontSize: "16px", cursor: "pointer" }}>Login</button>
       </form>
-     <p style={{ marginTop: "15px", textAlign: "center" }}>
-  Don't have an account? <Link to="/register" style={{ color: "#4CAF50" }}>Register here</Link>
-</p>
-
+      <p style={{ marginTop: "15px", textAlign: "center" }}>
+        Don't have an account? <Link to="/register" style={{ color: "#4CAF50" }}>Register here</Link>
+      </p>
     </div>
   );
 }
