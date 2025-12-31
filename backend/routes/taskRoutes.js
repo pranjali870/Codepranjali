@@ -1,49 +1,61 @@
 const express = require("express");
 const router = express.Router();
 const Task = require("../models/Task");
-const protect = require("../middleware/authMiddleware"); // use your existing middleware
+const protect = require("../middleware/authMiddleware");
 
-// GET all tasks for logged-in user
+// GET all tasks (logged-in user)
 router.get("/", protect, async (req, res) => {
   try {
-    const tasks = await Task.find({ userId: req.user.id, isDeleted: false });
+    const tasks = await Task.find({
+      userId: req.user._id,
+      isDeleted: false
+    });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// POST new task
-rrouter.post("/", protect, async (req, res) => {
+// CREATE new task
+router.post("/", protect, async (req, res) => {
   try {
     const { title, description, status, priority } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ message: "Title is required" });
+    }
 
     const task = new Task({
       title,
       description,
       status,
       priority,
-      userId: req.user.id
+      userId: req.user._id
     });
 
     const savedTask = await task.save();
-    res.json(savedTask);
+    res.status(201).json(savedTask);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// PUT update task
+// UPDATE task
 router.put("/:id", protect, async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, userId: req.user.id });
-    if (!task) return res.status(404).json({ message: "Task not found" });
+    const task = await Task.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
 
-    const { title, description, status, priority } = req.body;
-    if (title) task.title = title;
-    if (description) task.description = description;
-    if (status) task.status = status;
-    if (priority) task.priority = priority;
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    task.title = req.body.title || task.title;
+    task.description = req.body.description || task.description;
+    task.status = req.body.status || task.status;
+    task.priority = req.body.priority || task.priority;
 
     const updatedTask = await task.save();
     res.json(updatedTask);
@@ -55,11 +67,18 @@ router.put("/:id", protect, async (req, res) => {
 // DELETE task (soft delete)
 router.delete("/:id", protect, async (req, res) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, userId: req.user.id });
-    if (!task) return res.status(404).json({ message: "Task not found" });
+    const task = await Task.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
 
     task.isDeleted = true;
     await task.save();
+
     res.json({ message: "Task deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
